@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Accesos</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="icon" href="../resources/images/grupo_pochteca_logo.jfif" type="image/svg+xml">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <img src="../resources/images/grupo_pochteca_logo.jfif" alt="Logo Empresa" id="companyLogo">
+            </div>
+            <div class="header-text">
+                <h1>Control de Accesos</h1>
+                <h2>Sistema de Registro de Visitantes y Clientes</h2>
+            </div>
+        </header>
+        
+        <div class="content-wrapper">
+            <section class="registration-section">
+                <h2>Registro de Entrada</h2>
+                
+                <div class="visitor-type">
+                    <label>
+                        <input type="radio" name="visitorType" value="Cliente" checked> Cliente
+                    </label>
+                    <label>
+                        <input type="radio" name="visitorType" value="Visitante"> Visitante
+                    </label>
+                </div>
+                
+                <form id="registrationForm">
+                    <div class="form-group">
+                        <label for="sucursal">Sucursal que visita:</label>
+                        <select id="sucursal" required>
+                            <option value="">Seleccione la sucursal</option>
+                            <option value="Aguascalientes">Aguascalientes</option>
+                            <option value="Cancun">Cancún</option>
+                            <option value="Cd. Juarez">Cd. Juárez</option>
+                            <option value="Cd. Obregon">Cd. Obregón</option>
+                            <option value="Chihuahua">Chihuahua</option>
+                            <option value="Cuernavaca">Cuernavaca</option>
+                            <option value="Culiacan">Culiacán</option>
+                            <option value="Guadalajara">Guadalajara</option>
+                            <option value="Hermosillo">Hermosillo</option>
+                            <option value="Leon">León</option>
+                            <option value="Merida">Mérida</option>
+                            <option value="Minatitlan">Minatitlán</option>
+                            <option value="Monterrey">Monterrey</option>
+                            <option value="Morelia">Morelia</option>
+                            <option value="Pachuca">Pachuca</option>
+                            <option value="Puebla">Puebla</option>
+                            <option value="Queretaro">Querétaro</option>
+                            <option value="Reynosa">Reynosa</option>
+                            <option value="San Jose">San José</option>
+                            <option value="San Juan">San Juan</option>
+                            <option value="San Luis Potosi">San Luis Potosí</option>
+                            <option value="Tampico">Tampico</option>
+                            <option value="Tijuana">Tijuana</option>
+                            <option value="Toluca">Toluca</option>
+                            <option value="Torreon">Torreón</option>
+                            <option value="Tuxtla">Tuxtla</option>
+                            <option value="Vallejo">Vallejo</option>
+                            <option value="Veracruz">Veracruz</option>
+                            <option value="Villahermosa">Villahermosa</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="entryTime">Hora de Entrada:</label>
+                        <input type="text" id="entryTime" readonly>
+                    </div>
+                    
+                    <!-- Campos específicos para Cliente -->
+                    <div id="clientFields">
+                        <div class="form-group">
+                            <label for="companyName">Razón Social (opcional):</label>
+                            <input type="text" id="companyName" placeholder="Nombre de la empresa">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="clientPersonName">Nombre de la persona:</label>
+                            <input type="text" id="clientPersonName" placeholder="Nombre completo" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="product">Producto que viene a recoger (opcional):</label>
+                            <input type="text" id="product" placeholder="Nombre del producto">
+                        </div>
+                    </div>
+                    
+                    <!-- Campos específicos para Visitante -->
+                    <div id="visitorFields" style="display: none;">
+                        <div class="form-group">
+                            <label for="visitorName">Nombre completo:</label>
+                            <input type="text" id="visitorName" placeholder="Nombre y apellidos" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="visitPurpose">Motivo de la visita:</label>
+                            <select id="visitPurpose" required>
+                                <option value="">Seleccione un motivo</option>
+                                <option value="Entrevista">Entrevista</option>
+                                <option value="Soy proveedor">Soy proveedor</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="personToVisit">Persona a la que viene a ver:</label>
+                            <input type="text" id="personToVisit" placeholder="Nombre del colaborador" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="area">Área (opcional):</label>
+                            <input type="text" id="area" placeholder="Departamento/Área">
+                        </div>
+                    </div>
+                    
+                    <!-- Campo de observaciones común -->
+                    <div class="form-group">
+                        <label for="observations">Observaciones:</label>
+                        <textarea id="observations" rows="2" placeholder="Notas adicionales"></textarea>
+                    </div>
+                    
+                    <button type="button" id="registerEntryBtn" class="btn register-btn">Registrar Entrada</button>
+                </form>
+            </section>
+            
+            <section class="active-records">
+                <h2>Registros</h2>
+                <div class="controls-container">
+                    <div class="search-container">
+                        <input type="text" id="searchInput" placeholder="Buscar por Nombre/Razón Social...">
+                    </div>
+                    <div class="date-filter-container">
+                        <label for="dateFilter">Filtrar por fecha:</label>
+                        <input type="date" id="dateFilter">
+                    </div>
+                </div>
+                
+                <div class="tab-container">
+                    <button class="tab-button active" onclick="openTab('pending')">Entradas sin salida</button>
+                    <button class="tab-button" onclick="openTab('completed')">Entradas con salida</button>
+                </div>
+                
+                <div class="table-container">
+                    <div id="pending" class="tab-content" style="display:block">
+                        <table id="pendingTable">
+                            <thead>
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>Nombre/Razón Social</th>
+                                    <th>Sucursal</th>
+                                    <th>Fecha/Hora Entrada</th>
+                                    <th>Detalles</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingBody">
+                                <!-- Registros pendientes se agregarán aquí -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div id="completed" class="tab-content">
+                        <table id="completedTable">
+                            <thead>
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>Nombre/Razón Social</th>
+                                    <th>Sucursal</th>
+                                    <th>Fecha/Hora Entrada</th>
+                                    <th>Fecha/Hora Salida</th>
+                                    <th>Detalles</th>
+                                </tr>
+                            </thead>
+                            <tbody id="completedBody">
+                                <!-- Registros completados se agregarán aquí -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <button id="exportBtn" class="btn export-btn">Exportar Registros</button>
+            </section>
+        </div>
+    </div>
+    <!-- Scripts locales -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</body>
+</html>
