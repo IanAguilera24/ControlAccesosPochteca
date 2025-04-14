@@ -13,6 +13,11 @@ let pendingBody;
 let completedBody;
 let searchInput;
 let exportBtn;
+let currentPendingPage = 1;
+let currentCompletedPage = 1;
+const recordsPerPage = 6;
+let allPendingRecords = [];
+let allCompletedRecords = [];
 
 // Inicialización de Firebase
 async function initializeFirebase() {
@@ -148,6 +153,33 @@ function updateEntryTime() {
     entryTime.value = formattedTime;
 }
 
+// Función para mostrar notificaciones toast
+function showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    // Íconos para cada tipo (puedes usar Font Awesome o SVG)
+    const icons = {
+        error: '❌',
+        success: '✅',
+        warning: '⚠️',
+        info: 'ℹ️'
+    };
+    
+    toast.innerHTML = `
+        <span class="toast-icon">${icons[type]}</span>
+        <span class="toast-message">${message}</span>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Eliminar el toast después de la animación
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
 // Formatear fecha y hora
 function formatDateTime(date) {
     const options = { 
@@ -161,14 +193,15 @@ function formatDateTime(date) {
     return date.toLocaleString('es-MX', options);
 }
 
-// Registrar entrada
 async function registerEntry() {
     try {
         // Validar formulario
         const selectedType = Array.from(visitorType).find(radio => radio.checked).value;
+        const vehicleType = document.getElementById('vehicleType').value;
+        const licensePlate = document.getElementById('licensePlate').value;
         
         if (!sucursal.value) {
-            alert('Por favor, seleccione una sucursal.');
+            showToast('Por favor, seleccione una sucursal.', 'warning');
             return;
         }
         
@@ -176,7 +209,9 @@ async function registerEntry() {
             type: selectedType,
             sucursal: sucursal.value,
             entryTime: firebase.firestore.Timestamp.now(),
-            observations: observations.value
+            observations: observations.value,
+            vehicleType,
+            licensePlate
         };
         
         if (selectedType === 'Cliente') {
@@ -185,7 +220,7 @@ async function registerEntry() {
             const product = document.getElementById('product').value;
             
             if (!clientPersonName) {
-                alert('Por favor, ingrese el nombre de la persona.');
+                showToast('Por favor, ingrese el nombre de la persona.', 'warning');
                 return;
             }
             
@@ -202,7 +237,7 @@ async function registerEntry() {
             const area = document.getElementById('area').value;
             
             if (!visitorName || !visitPurpose || !personToVisit) {
-                alert('Por favor, complete todos los campos obligatorios.');
+                showToast('Por favor, complete todos los campos obligatorios.', 'warning');
                 return;
             }
             
@@ -236,14 +271,15 @@ async function registerEntry() {
         // Actualizar la lista de registros
         displayRecords();
         
-        alert('Entrada registrada con éxito.');
+        showToast('Entrada registrada con éxito.', 'success');
     } catch (error) {
         console.error('Error al registrar entrada:', error);
-        alert('Error al registrar entrada: ' + error.message);
+        showToast(`Error al registrar entrada: ${error.message}`, 'error');
     }
 }
 
 // Registrar salida
+// Registrar salida (versión con notificaciones toast)
 async function registerExit(recordId) {
     try {
         await db.collection('registros_visitantes').doc(recordId).update({
@@ -251,10 +287,10 @@ async function registerExit(recordId) {
         });
         
         displayRecords(searchInput.value);
-        alert('Salida registrada con éxito.');
+        showToast('Salida registrada con éxito.', 'success');
     } catch (error) {
         console.error('Error al registrar salida:', error);
-        alert('Error al registrar salida: ' + error.message);
+        showToast(`Error al registrar salida: ${error.message}`, 'error');
     }
 }
 
@@ -279,6 +315,7 @@ function addPendingRecord(record) {
         <td>${formatTimestamp(record.entryTime)}</td>
         <td>
             <button class="action-btn view-btn" onclick="viewDetails('${record.id}')">Ver detalles</button>
+            
         </td>
         <td class="actions-cell">
             <button class="action-btn check-out-btn" onclick="registerExit('${record.id}')">Registrar Salida</button>
@@ -301,6 +338,7 @@ function addCompletedRecord(record) {
         <td>${formatTimestamp(record.exitTime)}</td>
         <td>
             <button class="action-btn view-btn" onclick="viewDetails('${record.id}')">Ver detalles</button>
+            
         </td>
     `;
     
@@ -327,9 +365,100 @@ function openTab(tabName) {
     
     document.getElementById(tabName).style.display = 'block';
     event.currentTarget.classList.add('active');
+    
+    // Actualizar visibilidad de la paginación
+    updatePaginationVisibility();
 }
 
-// Mostrar detalles de un registro
+function createPaginationControls(totalPages, currentPage, type) {
+    const controlsContainer = document.getElementById(`${type}PaginationControls`);
+    controlsContainer.innerHTML = '';
+    
+    // Botón Anterior
+    const prevBtn = document.createElement('button');
+    prevBtn.textContent = '«';
+    prevBtn.className = 'pagination-btn';
+    prevBtn.disabled = currentPage === 1;
+    if (currentPage === 1) prevBtn.classList.add('disabled');
+    prevBtn.onclick = () => changePage(currentPage - 1, type);
+    controlsContainer.appendChild(prevBtn);
+    
+    // Páginas
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, startPage + 4);
+    
+    for (let i = startPage; i <= endPage; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.textContent = i;
+        pageBtn.className = 'pagination-btn';
+        if (i === currentPage) pageBtn.classList.add('active');
+        pageBtn.onclick = () => changePage(i, type);
+        controlsContainer.appendChild(pageBtn);
+    }
+    
+    // Botón Siguiente
+    const nextBtn = document.createElement('button');
+    nextBtn.textContent = '»';
+    nextBtn.className = 'pagination-btn';
+    nextBtn.disabled = currentPage === totalPages;
+    if (currentPage === totalPages) nextBtn.classList.add('disabled');
+    nextBtn.onclick = () => changePage(currentPage + 1, type);
+    controlsContainer.appendChild(nextBtn);
+    
+    // Actualizar información de paginación
+    const infoContainer = document.getElementById(`${type}PaginationInfo`);
+    infoContainer.textContent = `Página ${currentPage} de ${totalPages} - ${type === 'pending' ? allPendingRecords.length : allCompletedRecords.length} registros`;
+}
+
+function displayPendingRecords() {
+    pendingBody.innerHTML = '';
+    
+    const startIndex = (currentPendingPage - 1) * recordsPerPage;
+    const endIndex = Math.min(startIndex + recordsPerPage, allPendingRecords.length);
+    const recordsToShow = allPendingRecords.slice(startIndex, endIndex);
+    
+    if (recordsToShow.length === 0) {
+        pendingBody.innerHTML = `<tr><td colspan="6" style="text-align: center;">No hay registros pendientes</td></tr>`;
+    } else {
+        recordsToShow.forEach(record => {
+            addPendingRecord(record);
+        });
+    }
+    
+    const totalPages = Math.ceil(allPendingRecords.length / recordsPerPage);
+    createPaginationControls(totalPages, currentPendingPage, 'pending');
+}
+
+function displayCompletedRecords() {
+    completedBody.innerHTML = '';
+    
+    const startIndex = (currentCompletedPage - 1) * recordsPerPage;
+    const endIndex = Math.min(startIndex + recordsPerPage, allCompletedRecords.length);
+    const recordsToShow = allCompletedRecords.slice(startIndex, endIndex);
+    
+    if (recordsToShow.length === 0) {
+        completedBody.innerHTML = `<tr><td colspan="6" style="text-align: center;">No hay registros completados</td></tr>`;
+    } else {
+        recordsToShow.forEach(record => {
+            addCompletedRecord(record);
+        });
+    }
+    
+    const totalPages = Math.ceil(allCompletedRecords.length / recordsPerPage);
+    createPaginationControls(totalPages, currentCompletedPage, 'completed');
+}
+
+function changePage(page, type) {
+    if (type === 'pending') {
+        currentPendingPage = page;
+        displayPendingRecords();
+    } else {
+        currentCompletedPage = page;
+        displayCompletedRecords();
+    }
+}
+
+// Mostrar detalles de un registro (versión mejorada con modal)
 async function viewDetails(recordId) {
     try {
         const doc = await db.collection('registros_visitantes').doc(recordId).get();
@@ -340,68 +469,115 @@ async function viewDetails(recordId) {
         }
         
         const record = doc.data();
-        let details = '';
+        let detailsHTML = '';
         
         // Datos comunes
-        details += `Tipo: ${record.type}\n`;
-        details += `Sucursal: ${record.sucursal}\n`;
-        details += `Entrada: ${formatTimestamp(record.entryTime)}\n`;
+        detailsHTML += `<p><strong>Tipo:</strong> ${record.type}</p>`;
+        detailsHTML += `<p><strong>Sucursal:</strong> ${record.sucursal}</p>`;
+        detailsHTML += `<p><strong>Entrada:</strong> ${formatTimestamp(record.entryTime)}</p>`;
         
         if (record.exitTime) {
-            details += `Salida: ${formatTimestamp(record.exitTime)}\n`;
+            detailsHTML += `<p><strong>Salida:</strong> ${formatTimestamp(record.exitTime)}</p>`;
         }
         
         // Datos específicos según tipo
         if (record.type === 'Cliente') {
-            if (record.companyName) details += `Razón Social: ${record.companyName}\n`;
-            details += `Nombre: ${record.clientPersonName}\n`;
-            if (record.product) details += `Producto: ${record.product}\n`;
+            if (record.companyName) detailsHTML += `<p><strong>Razón Social:</strong> ${record.companyName}</p>`;
+            detailsHTML += `<p><strong>Nombre:</strong> ${record.clientPersonName}</p>`;
+            if (record.product) detailsHTML += `<p><strong>Producto:</strong> ${record.product}</p>`;
         } else {
-            details += `Nombre: ${record.visitorName}\n`;
-            details += `Motivo: ${record.visitPurpose}\n`;
-            details += `Persona a visitar: ${record.personToVisit}\n`;
-            if (record.area) details += `Área: ${record.area}\n`;
+            detailsHTML += `<p><strong>Nombre:</strong> ${record.visitorName}</p>`;
+            detailsHTML += `<p><strong>Motivo:</strong> ${record.visitPurpose}</p>`;
+            detailsHTML += `<p><strong>Persona a visitar:</strong> ${record.personToVisit}</p>`;
+            if (record.area) detailsHTML += `<p><strong>Área:</strong> ${record.area}</p>`;
         }
+
+        if (record.vehicleType) detailsHTML += `<p><strong>Tipo de vehículo:</strong> ${record.vehicleType}</p>`;
+        if (record.licensePlate) detailsHTML += `<p><strong>Placa:</strong> ${record.licensePlate}</p>`;
         
-        // Observaciones
         if (record.observations) {
-            details += `\nObservaciones: ${record.observations}\n`;
+            detailsHTML += `<p><strong>Observaciones:</strong><br>${record.observations}</p>`;
         }
         
-        alert(details);
+        // Mostrar en modal
+        const modal = document.getElementById('detailsModal');
+        const modalContent = document.getElementById('modalDetailsContent');
+        modalContent.innerHTML = detailsHTML;
+        modal.style.display = 'block';
+        
     } catch (error) {
         console.error('Error al obtener detalles:', error);
         alert('Error al obtener detalles: ' + error.message);
     }
 }
 
-// Exportar registros a Excel
-function exportToExcel() {
+// Cerrar modal al hacer clic en la "X"
+document.querySelector('.close-modal').addEventListener('click', function() {
+    document.getElementById('detailsModal').style.display = 'none';
+});
+
+// Cerrar modal al hacer clic fuera del contenido
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('detailsModal');
+    if (event.target === modal) {
+        modal.style.display = 'none';
+    }
+});
+
+// Exportar registros a Excel (versión mejorada)
+async function exportToExcel() {
     try {
-        // Obtener fecha formateada para el nombre del archivo
+        showToast('Preparando exportación...', 'info');
+        
+        // Obtener todos los registros de Firestore
+        const querySnapshot = await db.collection("registros_visitantes")
+            .orderBy("entryTime", "desc")
+            .get();
+
+        if (querySnapshot.empty) {
+            showToast('No hay registros para exportar', 'warning');
+            return;
+        }
+
+        // Formatear datos para Excel
+        const allData = querySnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                'Tipo': data.type,
+                'Nombre/Razón Social': data.type === 'Cliente' 
+                    ? (data.companyName ? `${data.companyName} - ${data.clientPersonName}` : data.clientPersonName)
+                    : data.visitorName,
+                'Sucursal': data.sucursal,
+                'Fecha/Hora Entrada': formatTimestamp(data.entryTime),
+                'Fecha/Hora Salida': data.exitTime ? formatTimestamp(data.exitTime) : 'PENDIENTE',
+                'Motivo': data.visitPurpose || 'N/A',
+                'Persona a visitar': data.personToVisit || 'N/A',
+                'Área': data.area || 'N/A',
+                'Producto': data.product || 'N/A',
+                'Tipo de vehículo': data.vehicleType || 'N/A',
+                'Placa': data.licensePlate || 'N/A',
+                'Observaciones': data.observations || 'N/A'
+            };
+        });
+
+        // Crear libro de Excel
+        const workbook = XLSX.utils.book_new();
+        const worksheet = XLSX.utils.json_to_sheet(allData);
+        
+        // Añadir hoja al libro
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'RegistrosCompletos');
+        
+        // Generar nombre de archivo
         const today = new Date();
         const formattedDate = today.toLocaleDateString('es-MX').replace(/\//g, '-');
         
-        // Crear una hoja de trabajo
-        const workbook = XLSX.utils.book_new();
+        // Exportar
+        XLSX.writeFile(workbook, `RegistrosCompletos_${formattedDate}.xlsx`);
+        showToast('Exportación completada con éxito', 'success');
         
-        // Obtener datos de las tablas
-        const pendingTable = document.getElementById('pendingTable');
-        const completedTable = document.getElementById('completedTable');
-        
-        // Crear hojas de trabajo para cada tabla
-        const pendingWs = XLSX.utils.table_to_sheet(pendingTable);
-        const completedWs = XLSX.utils.table_to_sheet(completedTable);
-        
-        // Añadir las hojas al libro
-        XLSX.utils.book_append_sheet(workbook, pendingWs, 'Entradas sin salida');
-        XLSX.utils.book_append_sheet(workbook, completedWs, 'Entradas con salida');
-        
-        // Generar archivo Excel
-        XLSX.writeFile(workbook, `Registros_Acceso_${formattedDate}.xlsx`);
     } catch (error) {
-        console.error('Error al exportar a Excel:', error);
-        alert('Error al exportar a Excel: ' + error.message);
+        console.error('Error al exportar:', error);
+        showToast(`Error al exportar: ${error.message}`, 'error');
     }
 }
 
@@ -488,13 +664,13 @@ function addBranchFilter() {
     });
 }
 
-// Mostrar registros
 async function displayRecords(filter = '') {
     const dateFilter = document.getElementById('dateFilter').value;
     const branchFilter = document.getElementById('branchFilter')?.value || '';
     
-    document.getElementById('pendingBody').innerHTML = '';
-    document.getElementById('completedBody').innerHTML = '';
+    // Resetear a la primera página cuando se aplica un nuevo filtro
+    currentPendingPage = 1;
+    currentCompletedPage = 1;
     
     try {
         // Determinar la fecha seleccionada
@@ -538,9 +714,6 @@ async function displayRecords(filter = '') {
         const endDate = new Date(selectedDate);
         endDate.setHours(23, 59, 59, 999);
         
-        console.log("Filtrando desde:", startDate.toString());
-        console.log("Hasta:", endDate.toString());
-        
         // Convertir a timestamps de Firebase
         const startTimestamp = firebase.firestore.Timestamp.fromDate(startDate);
         const endTimestamp = firebase.firestore.Timestamp.fromDate(endDate);
@@ -563,15 +736,10 @@ async function displayRecords(filter = '') {
             });
         }
         
-        // Si no hay registros
-        if (processedDocs.length === 0) {
-            const noRecordsMsg = `<tr><td colspan="6" style="text-align: center;">No hay registros para esta fecha</td></tr>`;
-            pendingBody.innerHTML = noRecordsMsg;
-            completedBody.innerHTML = noRecordsMsg;
-            return;
-        }
-        
         // Procesar los documentos
+        allPendingRecords = [];
+        allCompletedRecords = [];
+        
         processedDocs.forEach(doc => {
             const record = { id: doc.id, ...doc.data() };
             const displayName = getDisplayName(record);
@@ -581,17 +749,40 @@ async function displayRecords(filter = '') {
             }
     
             if (!record.exitTime) {
-                addPendingRecord(record);
+                allPendingRecords.push(record);
             } else {
-                addCompletedRecord(record);
+                allCompletedRecords.push(record);
             }
         });
+
+        // Mostrar los registros con paginación
+        displayPendingRecords();
+        displayCompletedRecords();
+        
+        // Mostrar/ocultar controles según la pestaña activa
+        updatePaginationVisibility();
 
     } catch (error) {
         console.error("Error completo:", error);
         const errorMsg = `<tr><td colspan="6" style="text-align: center; color: red;">${error.message}</td></tr>`;
         pendingBody.innerHTML = errorMsg;
         completedBody.innerHTML = errorMsg;
+    }
+}
+
+function updatePaginationVisibility() {
+    const activeTab = document.querySelector('.tab-button.active').textContent.trim();
+    
+    if (activeTab.includes("sin salida")) {
+        document.getElementById('pendingPaginationInfo').style.display = 'block';
+        document.getElementById('pendingPaginationControls').style.display = 'flex';
+        document.getElementById('completedPaginationInfo').style.display = 'none';
+        document.getElementById('completedPaginationControls').style.display = 'none';
+    } else {
+        document.getElementById('pendingPaginationInfo').style.display = 'none';
+        document.getElementById('pendingPaginationControls').style.display = 'none';
+        document.getElementById('completedPaginationInfo').style.display = 'block';
+        document.getElementById('completedPaginationControls').style.display = 'flex';
     }
 }
 

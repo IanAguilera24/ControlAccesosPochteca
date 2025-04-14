@@ -126,6 +126,23 @@
                         <textarea id="observations" rows="2" placeholder="Notas adicionales"></textarea>
                     </div>
                     
+                    <div class="form-group">
+                        <label for="vehicleType">Tipo de vehículo:</label>
+                        <select id="vehicleType" required>
+                            <option value="">Seleccione tipo</option>
+                            <option value="Automóvil">Automóvil</option>
+                            <option value="Camioneta">Camioneta</option>
+                            <option value="Motocicleta">Motocicleta</option>
+                            <option value="Camión">Camión</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="licensePlate">Placa del vehículo:</label>
+                        <input type="text" id="licensePlate" placeholder="Placas del vehículo" maxlength="10" required>
+                    </div>
+
                     <button type="button" id="registerEntryBtn" class="btn register-btn">Registrar Entrada</button>
                 </form>
             </section>
@@ -184,11 +201,27 @@
                         </table>
                     </div>
                 </div>
-                
+                <div class="pagination-container">
+                    <div class="pagination-info" id="pendingPaginationInfo"></div>
+                    <div class="pagination-controls" id="pendingPaginationControls"></div>
+                    
+                    <div class="pagination-info" id="completedPaginationInfo" style="display:none"></div>
+                    <div class="pagination-controls" id="completedPaginationControls" style="display:none"></div>
+                </div>
                 <button id="exportBtn" class="btn export-btn">Exportar Registros</button>
             </section>
         </div>
     </div>
+    <!-- Modal para detalles -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>Detalles del Registro</h3>
+            <div id="modalDetailsContent" class="modal-body"></div>
+        </div>
+    </div>
+    <!-- Notificaciones Toast -->
+    <div id="toastContainer" class="toast-container"></div>
     <!-- Scripts locales -->
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
