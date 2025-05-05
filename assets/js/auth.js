@@ -90,11 +90,12 @@ function waitForFirebase() {
           }
       
           const userData = userDoc.data();
+          const ALLOWED_ROLES = ['admin', 'guardia'];
           
           // 3. Verificación de rol
-          if (!userData.rol) {
+          if (!userData.rol || !ALLOWED_ROLES.includes(userData.rol)) {
             await auth.signOut();
-            throw new Error('Rol no asignado');
+            throw new Error('Rol no válido o no asignado');
           }
       
           // 4. Redirección

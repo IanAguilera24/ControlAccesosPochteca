@@ -458,6 +458,13 @@ function changePage(page, type) {
     }
 }
 
+// Proteccion contra XSS
+function sanitizeInput(input) {
+    const div = document.createElement('div');
+    div.textContent = input; // Esto automáticamente escapa HTML
+    return div.innerHTML;
+}
+
 // Mostrar detalles de un registro (versión mejorada con modal)
 async function viewDetails(recordId) {
     try {
@@ -472,31 +479,31 @@ async function viewDetails(recordId) {
         let detailsHTML = '';
         
         // Datos comunes
-        detailsHTML += `<p><strong>Tipo:</strong> ${record.type}</p>`;
-        detailsHTML += `<p><strong>Sucursal:</strong> ${record.sucursal}</p>`;
-        detailsHTML += `<p><strong>Entrada:</strong> ${formatTimestamp(record.entryTime)}</p>`;
+        detailsHTML += `<p><strong>Tipo:</strong> ${sanitizeInput(record.type)}</p>`;
+        detailsHTML += `<p><strong>Sucursal:</strong> ${sanitizeInput(record.sucursal)}</p>`;
+        detailsHTML += `<p><strong>Entrada:</strong> ${sanitizeInput(formatTimestamp(record.entryTime))}</p>`;
         
         if (record.exitTime) {
-            detailsHTML += `<p><strong>Salida:</strong> ${formatTimestamp(record.exitTime)}</p>`;
+            detailsHTML += `<p><strong>Salida:</strong> ${sanitizeInput(formatTimestamp(record.exitTime))}</p>`;
         }
         
         // Datos específicos según tipo
         if (record.type === 'Cliente') {
-            if (record.companyName) detailsHTML += `<p><strong>Razón Social:</strong> ${record.companyName}</p>`;
-            detailsHTML += `<p><strong>Nombre:</strong> ${record.clientPersonName}</p>`;
-            if (record.product) detailsHTML += `<p><strong>Producto:</strong> ${record.product}</p>`;
+            if (record.companyName) detailsHTML += `<p><strong>Razón Social:</strong> ${sanitizeInput(record.companyName)}</p>`;
+            detailsHTML += `<p><strong>Nombre:</strong> ${sanitizeInput(record.clientPersonName)}</p>`;
+            if (record.product) detailsHTML += `<p><strong>Producto:</strong> ${sanitizeInput(record.product)}</p>`;
         } else {
-            detailsHTML += `<p><strong>Nombre:</strong> ${record.visitorName}</p>`;
-            detailsHTML += `<p><strong>Motivo:</strong> ${record.visitPurpose}</p>`;
-            detailsHTML += `<p><strong>Persona a visitar:</strong> ${record.personToVisit}</p>`;
-            if (record.area) detailsHTML += `<p><strong>Área:</strong> ${record.area}</p>`;
+            detailsHTML += `<p><strong>Nombre:</strong> ${sanitizeInput(record.visitorName)}</p>`;
+            detailsHTML += `<p><strong>Motivo:</strong> ${sanitizeInput(record.visitPurpose)}</p>`;
+            detailsHTML += `<p><strong>Persona a visitar:</strong> ${sanitizeInput(record.personToVisit)}</p>`;
+            if (record.area) detailsHTML += `<p><strong>Área:</strong> ${sanitizeInput(record.area)}</p>`;
         }
 
-        if (record.vehicleType) detailsHTML += `<p><strong>Tipo de vehículo:</strong> ${record.vehicleType}</p>`;
-        if (record.licensePlate) detailsHTML += `<p><strong>Placa:</strong> ${record.licensePlate}</p>`;
+        if (record.vehicleType) detailsHTML += `<p><strong>Tipo de vehículo:</strong> ${sanitizeInput(record.vehicleType)}</p>`;
+        if (record.licensePlate) detailsHTML += `<p><strong>Placa:</strong> ${sanitizeInput(record.licensePlate)}</p>`;
         
         if (record.observations) {
-            detailsHTML += `<p><strong>Observaciones:</strong><br>${record.observations}</p>`;
+            detailsHTML += `<p><strong>Observaciones:</strong><br>${sanitizeInput(record.observations)}</p>`;
         }
         
         // Mostrar en modal
