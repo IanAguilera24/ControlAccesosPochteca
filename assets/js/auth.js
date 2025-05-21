@@ -1,11 +1,6 @@
-// auth.js - Versión final optimizada
 
-// =============================================
 // Configuración inicial
-// =============================================
 
-// Función para esperar que Firebase esté listo
-// auth.js - Versión tradicional
 function waitForFirebase() {
     return new Promise((resolve) => {
         const maxAttempts = 50;
@@ -30,10 +25,8 @@ function waitForFirebase() {
         }, 100);
     });
 }
-  
-  // =============================================
+
   // Funciones principales
-  // =============================================
 
   document.addEventListener('DOMContentLoaded', async function() {
     try {
