@@ -31,7 +31,11 @@ async function initializeFirebase() {
 
 // Redirección al login si no hay autenticación
 function redirectToLogin() {
-    window.location.href = '../login.html';
+    // Limpiar cualquier estado de autenticación residual
+    if (auth) {
+        auth.signOut();
+    }
+    window.location.href = 'login.html';
 }
 
 // Verificar autenticación y roles
@@ -62,14 +66,17 @@ async function checkAuth() {
 
             // Definir páginas permitidas para cada rol
             const allowedPages = {
-                admin: ['administrador.html', 'guardia.html'],
+                admin: ['administrador.html'],
                 guardia: ['guardia.html']
             };
 
             // Verificar si el rol tiene acceso a la página actual
-            if (!allowedPages[currentUserRole]?.includes(currentPage)) {
-                await auth.signOut();
-                redirectToLogin();
+            const hasAccess = allowedPages[currentUserRole]?.includes(currentPage);
+            
+            if (!hasAccess) {
+                // Redirigir a la página correspondiente según el rol
+                const targetPage = currentUserRole === 'admin' ? 'administrador.html' : 'guardia.html';
+                window.location.href = targetPage;
                 return;
             }
 
@@ -742,6 +749,8 @@ async function exportToExcel() {
         showToast(`Error al exportar: ${error.message}`, 'error');
     }
 }
+
+
 
 // Iniciar la aplicación
 function startApplication() {

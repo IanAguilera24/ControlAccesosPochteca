@@ -1,8 +1,3 @@
-/**
- * Control de visibilidad de contraseñas
- * Versión mejorada con mejor seguridad, accesibilidad y manejo de errores
- * Adaptada para el HTML específico de Pochteca Sistema de Accesos
- */
 document.addEventListener('DOMContentLoaded', function() {
     // Para la estructura actual del HTML - Seleccionamos el botón directamente
     const toggleButton = document.querySelector('.toggle-password');
@@ -117,4 +112,82 @@ document.addEventListener('DOMContentLoaded', function() {
     if (typeof firebase !== 'undefined' && firebase.auth) {
         console.log('Firebase Auth detectado - Toggle de contraseña funcionando en conjunto con Firebase');
     }
+});
+
+// =============================================
+// AUTENTICACIÓN Y REDIRECCIÓN POR ROLES
+// =============================================
+
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    // ============== [1] INICIO - Mostrar loader ==============
+    const submitBtn = document.querySelector('.login-btn');
+    const originalBtnText = submitBtn.innerHTML; // Guardar texto original
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="loader"></span> Autenticando...';
+    // =========================================================
+
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    if (!email || !password) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Campos incompletos',
+            text: 'Por favor ingresa correo y contraseña'
+        });
+
+        // ===== Restaurar botón si hay error =====
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
+        // ========================================
+        return;
+    }
+
+    firebase.auth().signInWithEmailAndPassword(email, password)
+        .then(async (userCredential) => {
+            const userDoc = await firebase.firestore().collection('usuarios').doc(userCredential.user.uid).get();
+            
+            if (!userDoc.exists) {
+                throw new Error('No tienes permisos asignados');
+            }
+
+            const userData = userDoc.data();
+            
+            if (userData.rol === 'admin') {
+                window.location.href = 'administrador.html';
+            } else if (userData.rol === 'guardia') {
+                window.location.href = 'guardia.html';
+            } else {
+                throw new Error('Rol no reconocido');
+            }
+        })
+        .catch((error) => {
+            let errorMessage = 'Error al iniciar sesión';
+            
+            switch (error.code) {
+                case 'auth/user-not-found':
+                    errorMessage = 'Usuario no registrado';
+                    break;
+                case 'auth/wrong-password':
+                    errorMessage = 'Contraseña incorrecta';
+                    break;
+                case 'auth/too-many-requests':
+                    errorMessage = 'Demasiados intentos. Cuenta temporalmente bloqueada';
+                    break;
+            }
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: errorMessage || error.message
+            });
+        })
+        // ============== [2] FINAL - Restaurar botón ==============
+        .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+        });
+        // =========================================================
 });
