@@ -13,6 +13,7 @@
     margin: 0;
     padding: 0;
     font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
 }
 
 body {
@@ -367,6 +368,15 @@ tr:hover {
 @keyframes toastFadeOut {
     from { opacity: 1; }
     to { opacity: 0; }
+}
+
+/* Estilo para Confirm salida */
+.btn-confirm-custom, .btn-cancel-custom{
+    transition: transform 0.3s ease;
+}
+
+.btn-confirm-custom:hover, .btn-cancel-custom:hover{
+    transform: scale(1.1);
 }
 
 /* Estilos para la paginación */

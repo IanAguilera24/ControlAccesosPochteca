@@ -10,6 +10,7 @@ body {
     background: linear-gradient(135deg, #93a444 0%, #005c43 100%);
     background-attachment: fixed;
     font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
 }
 
 .login-container {

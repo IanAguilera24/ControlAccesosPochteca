@@ -193,6 +193,112 @@ function formatDateTime(date) {
     return date.toLocaleString('es-MX', options);
 }
 
+function validateTextField(value, {
+    minLength = 6,
+    maxLength = 50,
+    allowNumbers = true,
+    allowAccents = true,
+    allowSpaces = true,
+    customRegex = null
+} = {}) {
+    // Remover espacios al inicio y final
+    const trimmedValue = value.trim();
+    
+    // Verificar que el valor no esté vacío después de trim
+    if (trimmedValue === '') {
+        return {
+            isValid: false,
+            message: 'El campo no puede estar vacío'
+        };
+    }
+    
+    // Verificar longitud mínima
+    if (trimmedValue.length < minLength) {
+        return {
+            isValid: false,
+            message: `Debe tener al menos ${minLength} caracteres válidos`
+        };
+    }
+    
+    // Verificar longitud máxima
+    if (trimmedValue.length > maxLength) {
+        return {
+            isValid: false,
+            message: `No debe exceder ${maxLength} caracteres`
+        };
+    }
+    
+    // Construir regex base según opciones
+    let baseRegex = '';
+    
+    // Letras básicas (siempre permitidas)
+    baseRegex += 'a-zA-Z';
+    
+    // Números
+    if (allowNumbers) {
+        baseRegex += '0-9';
+    }
+    
+    // Caracteres acentuados
+    if (allowAccents) {
+        baseRegex += 'áéíóúÁÉÍÓÚñÑ';
+    }
+    
+    // Espacios (solo internos, no al inicio/final)
+    if (allowSpaces) {
+        baseRegex += ' ';
+    }
+    
+    // Usar regex personalizado si se proporciona, sino usar el construido
+    const validationRegex = customRegex || new RegExp(`^[${baseRegex}]+$`);
+    
+    // Verificar caracteres válidos
+    if (!validationRegex.test(trimmedValue)) {
+        return {
+            isValid: false,
+            message: 'Contiene caracteres no permitidos'
+        };
+    }
+    
+    // Verificar que no sea solo espacios (si los espacios están permitidos)
+    if (allowSpaces && trimmedValue.replace(/ /g, '').length === 0) {
+        return {
+            isValid: false,
+            message: 'No puede contener solo espacios'
+        };
+    }
+    
+    // Verificar que tenga al menos un caracter no especial (letra o número)
+    const hasValidContent = allowNumbers 
+        ? /[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]/.test(trimmedValue)
+        : /[a-zA-ZáéíóúÁÉÍÓÚñÑ]/.test(trimmedValue);
+    
+    if (!hasValidContent) {
+        return {
+            isValid: false,
+            message: 'Debe contener al menos una letra' + (allowNumbers ? ' o número' : '')
+        };
+    }
+    
+    // Si pasa todas las validaciones
+    return {
+        isValid: true,
+        message: 'Válido'
+    };
+}
+
+// Función auxiliar para validar múltiples campos
+function validateFormFields(fields) {
+    for (const field of fields) {
+        const validation = validateTextField(field.value, field.minLength || 3, field.maxLength || 50);
+        if (!validation.isValid) {
+            showToast(`${field.name}: ${validation.message}`, 'warning');
+            return false;
+        }
+    }
+    return true;
+}
+
 async function registerEntry() {
     try {
         // Validar formulario
@@ -215,11 +321,30 @@ async function registerEntry() {
         };
         
         if (selectedType === 'Cliente') {
-            const companyName = document.getElementById('companyName').value;
-            const clientPersonName = document.getElementById('clientPersonName').value;
-            const product = document.getElementById('product').value;
+            const companyName = document.getElementById('companyName').value.toUpperCase();
+            const clientPersonName = document.getElementById('clientPersonName').value.toUpperCase();
+            const product = document.getElementById('product').value.toUpperCase();
             
-            if (!clientPersonName) {
+            // VALIDACIONES AÑADIDAS AQUÍ
+            const fieldsToValidate = [
+                { value: clientPersonName, name: 'Nombre de la persona', minLength: 2, maxLength: 100 }
+            ];
+            
+            // Validar company name solo si no está vacío
+            if (companyName) {
+                fieldsToValidate.push({ value: companyName, name: 'Nombre de la empresa', minLength: 2, maxLength: 100 });
+            }
+            
+            // Validar product solo si no está vacío
+            if (product) {
+                fieldsToValidate.push({ value: product, name: 'Producto', minLength: 2, maxLength: 100 });
+            }
+            
+            if (!validateFormFields(fieldsToValidate)) {
+                return;
+            }
+            
+            if (!clientPersonName.trim()) {
                 showToast('Por favor, ingrese el nombre de la persona.', 'warning');
                 return;
             }
@@ -231,10 +356,26 @@ async function registerEntry() {
                 product
             };
         } else { // Visitante
-            const visitorName = document.getElementById('visitorName').value;
-            const visitPurpose = document.getElementById('visitPurpose').value;
-            const personToVisit = document.getElementById('personToVisit').value;
-            const area = document.getElementById('area').value;
+            const visitorName = document.getElementById('visitorName').value.toUpperCase();
+            const visitPurpose = document.getElementById('visitPurpose').value.toUpperCase();
+            const personToVisit = document.getElementById('personToVisit').value.toUpperCase();
+            const area = document.getElementById('area').value.toUpperCase();
+            
+            // VALIDACIONES AÑADIDAS AQUÍ
+            const fieldsToValidate = [
+                { value: visitorName, name: 'Nombre del visitante', minLength: 2, maxLength: 100 },
+                { value: visitPurpose, name: 'Propósito de la visita', minLength: 3, maxLength: 200 },
+                { value: personToVisit, name: 'Persona a visitar', minLength: 2, maxLength: 100 }
+            ];
+            
+            // Validar área solo si no está vacía
+            if (area) {
+                fieldsToValidate.push({ value: area, name: 'Área', minLength: 2, maxLength: 50 });
+            }
+            
+            if (!validateFormFields(fieldsToValidate)) {
+                return;
+            }
             
             if (!visitorName || !visitPurpose || !personToVisit) {
                 showToast('Por favor, complete todos los campos obligatorios.', 'warning');
@@ -250,15 +391,13 @@ async function registerEntry() {
             };
         }
         
-        // Guardar en Firestore
+        // Resto de tu código igual...
         await db.collection('registros_visitantes').add(visitorData);
         
-        // Limpiar formulario
         document.getElementById('registrationForm').reset();
         observations.value = '';
         updateEntryTime();
         
-        // Configurar el campo de sucursal con la sucursal del usuario
         if (currentUserBranch) {
             for(let i = 0; i < sucursal.options.length; i++) {
                 if(sucursal.options[i].value === currentUserBranch) {
@@ -268,9 +407,7 @@ async function registerEntry() {
             }
         }
         
-        // Actualizar la lista de registros
         displayRecords();
-        
         showToast('Entrada registrada con éxito.', 'success');
     } catch (error) {
         console.error('Error al registrar entrada:', error);
@@ -278,9 +415,27 @@ async function registerEntry() {
     }
 }
 
-// Registrar salida
-// Registrar salida (versión con notificaciones toast)
 async function registerExit(recordId) {
+    // Confirmación con SweetAlert2
+    const result = await Swal.fire({
+        title: '¿Registrar salida?',
+        text: '¿Está seguro de que desea registrar la salida del visitante?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, registrar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        customClass: {
+        confirmButton: 'btn-confirm-custom',
+        cancelButton: 'btn-cancel-custom'
+    }
+    });
+
+    if (!result.isConfirmed) {
+        return; // Si cancela, no continúa
+    }
+    
     try {
         await db.collection('registros_visitantes').doc(recordId).update({
             exitTime: firebase.firestore.Timestamp.now()
