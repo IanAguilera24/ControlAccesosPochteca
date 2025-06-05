@@ -19,6 +19,110 @@
             </div>
         </header>
         
+        <!-- Botón para abrir el menú lateral -->
+        <button id="sideMenuToggle" class="side-menu-toggle">☰</button>
+
+        <!-- Menú lateral -->
+        <div id="sideMenu" class="side-menu">
+            <div class="side-menu-header">
+                <h3>Configuración</h3>
+                <button id="closeSideMenu" class="close-side-menu">&times;</button>
+            </div>
+            
+            <div class="side-menu-content">
+                <!-- Tabs del menú -->
+                <div class="side-menu-tabs">
+                    <button class="side-tab-button active" onclick="openSideTab('changePassword')">Cambiar Contraseña</button>
+                    <button class="side-tab-button" id="createUserTab" onclick="openSideTab('createUser')">Crear Usuario</button>
+                </div>
+                
+                <!-- Contenido de cambiar contraseña -->
+                <div id="changePassword" class="side-tab-content active">
+                    <form id="changePasswordForm">
+                        <div class="form-group">
+                            <label for="currentPassword">Contraseña Actual:</label>
+                            <input type="password" id="currentPassword" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newPassword">Nueva Contraseña:</label>
+                            <input type="password" id="newPassword" required minlength="8">
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirmar Nueva Contraseña:</label>
+                            <input type="password" id="confirmPassword" required minlength="8">
+                        </div>
+                        <button type="submit" class="btn menu-btn">Cambiar Contraseña</button>
+                    </form>
+                </div>
+                
+                <!-- Contenido de crear usuario -->
+                <div id="createUser" class="side-tab-content">
+                    <form id="createUserForm">
+                        <div class="form-group">
+                            <label for="newUserEmail">Email:</label>
+                            <input type="email" id="newUserEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newUserPassword">Contraseña:</label>
+                            <input type="password" id="newUserPassword" required minlength="8">
+                        </div>
+                        <div class="form-group">
+                            <label for="newUserRole">Rol:</label>
+                            <select id="newUserRole" required>
+                                <option value="">Seleccione un rol</option>
+                                <option value="admin">Administrador</option>
+                                <option value="guardia">Guardia</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="newUserBranch">Sucursal:</label>
+                            <select id="newUserBranch" required>
+                                <option value="">Seleccione la sucursal</option>
+                                <option value="Aguascalientes">Aguascalientes</option>
+                                <option value="Cancun">Cancún</option>
+                                <option value="Cd. Juarez">Cd. Juárez</option>
+                                <option value="Cd. Obregon">Cd. Obregón</option>
+                                <option value="Chihuahua">Chihuahua</option>
+                                <option value="Cuernavaca">Cuernavaca</option>
+                                <option value="Culiacan">Culiacán</option>
+                                <option value="Guadalajara">Guadalajara</option>
+                                <option value="Hermosillo">Hermosillo</option>
+                                <option value="Leon">León</option>
+                                <option value="Merida">Mérida</option>
+                                <option value="Minatitlan">Minatitlán</option>
+                                <option value="Monterrey">Monterrey</option>
+                                <option value="Morelia">Morelia</option>
+                                <option value="Pachuca">Pachuca</option>
+                                <option value="Puebla">Puebla</option>
+                                <option value="Queretaro">Querétaro</option>
+                                <option value="Reynosa">Reynosa</option>
+                                <option value="San Jose">San José</option>
+                                <option value="San Juan">San Juan</option>
+                                <option value="San Luis Potosi">San Luis Potosí</option>
+                                <option value="Tampico">Tampico</option>
+                                <option value="Tijuana">Tijuana</option>
+                                <option value="Toluca">Toluca</option>
+                                <option value="Torreon">Torreón</option>
+                                <option value="Tuxtla">Tuxtla</option>
+                                <option value="Vallejo">Vallejo</option>
+                                <option value="Veracruz">Veracruz</option>
+                                <option value="Villahermosa">Villahermosa</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn menu-btn">Crear Usuario</button>
+                    </form>
+                </div>
+                
+                <!-- Botón de cerrar sesión -->
+                <div class="logout-section">
+                    <button id="logoutBtn" class="btn logout-btn">Cerrar Sesión</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overlay para el menú -->
+        <div id="sideMenuOverlay" class="side-menu-overlay"></div>
+
         <div class="content-wrapper">
             <section class="registration-section">
                 <h2>Registro de Entrada</h2>

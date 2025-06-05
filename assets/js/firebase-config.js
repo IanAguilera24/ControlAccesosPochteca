@@ -17,7 +17,6 @@ try {
         window.db = firebase.firestore(app);
         window.Timestamp = firebase.firestore.Timestamp;
 
-        console.log("Firebase configurado correctamente");
     }
 } catch (error) {
     console.error("Error al inicializar Firebase:", error);

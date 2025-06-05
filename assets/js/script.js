@@ -124,6 +124,10 @@ function adjustUIForRole() {
     if (currentUserRole !== 'admin') {
         exportBtn.style.display = 'none';
     }
+
+    if (currentUserRole !== 'admin') {
+    document.getElementById('createUserTab').classList.add('hidden');
+    }
 }
 
 // Configurar listeners de eventos
@@ -151,6 +155,8 @@ function setupEventListeners() {
     
     // Evento para exportar registros
     exportBtn.addEventListener('click', exportToExcel);
+
+    setupSideMenuListeners();
 }
 
 // Actualizar la hora de entrada
@@ -304,6 +310,388 @@ function validateFormFields(fields) {
         }
     }
     return true;
+}
+
+// Funciones para el menú lateral
+function openSideMenu() {
+    document.getElementById('sideMenu').classList.add('open');
+    document.getElementById('sideMenuOverlay').classList.add('show');
+}
+
+function closeSideMenu() {
+    document.getElementById('sideMenu').classList.remove('open');
+    document.getElementById('sideMenuOverlay').classList.remove('show');
+}
+
+function openSideTab(tabName) {
+    // Ocultar todos los contenidos de tabs
+    const tabContents = document.getElementsByClassName('side-tab-content');
+    for (let i = 0; i < tabContents.length; i++) {
+        tabContents[i].classList.remove('active');
+    }
+    
+    // Quitar clase active de todos los botones de tab
+    const tabButtons = document.getElementsByClassName('side-tab-button');
+    for (let i = 0; i < tabButtons.length; i++) {
+        tabButtons[i].classList.remove('active');
+    }
+    
+    // Mostrar el contenido del tab seleccionado y activar el botón
+    document.getElementById(tabName).classList.add('active');
+    event.currentTarget.classList.add('active');
+}
+
+// Configurar listeners del menú lateral
+function setupSideMenuListeners() {
+    // Botón para abrir menú
+    document.getElementById('sideMenuToggle').addEventListener('click', openSideMenu);
+    
+    // Botón para cerrar menú
+    document.getElementById('closeSideMenu').addEventListener('click', closeSideMenu);
+    
+    // Overlay para cerrar menú
+    document.getElementById('sideMenuOverlay').addEventListener('click', closeSideMenu);
+    
+    // Formulario de cambio de contraseña
+    document.getElementById('changePasswordForm').addEventListener('submit', handleChangePassword);
+    
+    // Formulario de crear usuario
+    document.getElementById('createUserForm').addEventListener('submit', handleCreateUser);
+    
+    // Botón de cerrar sesión
+    document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+}
+
+// Validar política de contraseñas
+function validatePassword(password) {
+    const errors = [];
+    
+    if (password.length < 8) {
+        errors.push('Debe tener al menos 8 caracteres');
+    }
+    
+    if (password.length > 32) {
+        errors.push('No debe exceder 32 caracteres');
+    }
+    
+    if (!/[A-Z]/.test(password)) {
+        errors.push('Debe contener al menos una letra mayúscula');
+    }
+    
+    if (!/[a-z]/.test(password)) {
+        errors.push('Debe contener al menos una letra minúscula');
+    }
+    
+    if (!/\d/.test(password)) {
+        errors.push('Debe contener al menos un número');
+    }
+    
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+        errors.push('Debe contener al menos un carácter especial');
+    }
+    
+    return errors;
+}
+
+// Manejar cambio de contraseña (CORREGIDA)
+async function handleChangePassword(e) {
+    e.preventDefault();
+    
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    
+    // Validaciones
+    if (newPassword !== confirmPassword) {
+        showToast('Las contraseñas no coinciden', 'error');
+        return;
+    }
+    
+    // Validar política de contraseñas
+    const passwordErrors = validatePassword(newPassword);
+    if (passwordErrors.length > 0) {
+        showToast(`Contraseña inválida: ${passwordErrors.join(', ')}`, 'error');
+        return;
+    }
+    
+    try {
+        const user = auth.currentUser;
+        
+        // Reautenticar usuario
+        const credential = firebase.auth.EmailAuthProvider.credential(user.email, currentPassword);
+        await user.reauthenticateWithCredential(credential);
+        
+        // Cambiar contraseña
+        await user.updatePassword(newPassword);
+        
+        // Limpiar formulario
+        document.getElementById('changePasswordForm').reset();
+        
+        showToast('Contraseña cambiada exitosamente', 'success');
+        closeSideMenu();
+        
+    } catch (error) {
+        console.error('Error al cambiar contraseña:', error);
+        
+        let message = 'Error al cambiar la contraseña';
+        if (error.code === 'auth/wrong-password') {
+            message = 'La contraseña actual es incorrecta';
+        } else if (error.code === 'auth/weak-password') {
+            message = 'La nueva contraseña es muy débil';
+        }
+        
+        showToast(message, 'error');
+    }
+}
+
+// Variable global para guardar credenciales del admin temporalmente
+let adminCredentials = null;
+
+// Mostrar submenú de reautenticación
+function showReauthModal() {
+    // HTML del modal de reautenticación usando tus clases CSS
+    const modalHTML = `
+        <div id="reauthModal" class="reauth-modal">
+            <div class="reauth-modal-content">
+                <h3>Reautenticación Requerida</h3>
+                <p>Para mantener la seguridad, confirme su contraseña de administrador:</p>
+                <form id="reauthForm">
+                    <div class="form-group">
+                        <label for="adminPassword">Su contraseña:</label>
+                        <input type="password" id="adminPassword" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" id="reauthSubmit">Confirmar</button>
+                        <button type="button" id="reauthCancel" onclick="closeReauthModal(true)">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Manejar envío del formulario
+    document.getElementById('reauthForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const password = document.getElementById('adminPassword').value;
+        
+        if (!password) {
+            showToast('Por favor ingrese su contraseña', 'warning');
+            return;
+        }
+        
+        if (!adminCredentials || !adminCredentials.email) {
+            showToast('Error: No se encontraron credenciales del administrador', 'error');
+            closeReauthModal(true);
+            return;
+        }
+        
+        try {
+            
+            // Reautenticar al usuario actual con su contraseña
+            const credential = firebase.auth.EmailAuthProvider.credential(adminCredentials.email, password);
+            await auth.currentUser.reauthenticateWithCredential(credential);
+            
+            showToast('Reautenticación exitosa', 'success');
+            
+            // Cerrar modal SIN limpiar datos pendientes
+            closeReauthModal(false);
+            
+            // Proceder con la creación del usuario
+            await proceedWithUserCreation();
+            
+        } catch (error) {
+            console.error('Error en reautenticación:', error);
+            let message = 'Contraseña incorrecta';
+            if (error.code === 'auth/wrong-password') {
+                message = 'La contraseña del administrador es incorrecta';
+            } else if (error.code === 'auth/too-many-requests') {
+                message = 'Demasiados intentos fallidos. Intente más tarde';
+            } else if (error.code === 'auth/invalid-login-credentials') {
+                message = 'Credenciales de administrador inválidas';
+            } else if (error.code === 'auth/user-mismatch') {
+                message = 'Error de coincidencia de usuario';
+            }
+            showToast(message, 'error');
+        }
+    });
+}
+
+// Cerrar modal de reautenticación
+// clearPendingData: true = limpiar datos (cancelación), false = mantener datos (éxito)
+function closeReauthModal(clearPendingData = true) {
+    const modal = document.getElementById('reauthModal');
+    if (modal) {
+        modal.remove();
+    }
+    
+    // Solo limpiar datos pendientes si se especifica (cancelación)
+    if (clearPendingData && pendingUserData) {
+        pendingUserData = null;
+        adminCredentials = null;
+        showToast('Creación de usuario cancelada', 'info');
+    }
+}
+
+// Variable para almacenar los datos del usuario pendiente de crear
+let pendingUserData = null;
+
+// Manejar creación de usuario (CORREGIDA)
+async function handleCreateUser(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('newUserEmail').value;
+    const password = document.getElementById('newUserPassword').value;
+    const role = document.getElementById('newUserRole').value;
+    const branch = document.getElementById('newUserBranch').value;
+    
+    // Validar política de contraseñas
+    const passwordErrors = validatePassword(password);
+    if (passwordErrors.length > 0) {
+        showToast(`Contraseña inválida: ${passwordErrors.join(', ')}`, 'error');
+        return;
+    }
+    
+    // Verificar que el usuario actual esté autenticado
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        showToast('Error: No hay usuario administrador autenticado', 'error');
+        return;
+    }
+    
+    // Guardar datos del usuario pendiente y credenciales del admin
+    pendingUserData = {
+        email: email,
+        password: password,
+        role: role,
+        branch: branch
+    };
+    
+    adminCredentials = {
+        email: currentUser.email,
+        uid: currentUser.uid
+    };
+    
+    // Mostrar modal de reautenticación ANTES de crear el usuario
+    showReauthModal();
+}
+
+// Función que se ejecuta después de la reautenticación exitosa
+async function proceedWithUserCreation() {
+    
+    if (!pendingUserData) {
+        showToast('Error: No hay datos de usuario pendientes', 'error');
+        return;
+    }
+    
+    try {
+        const { email, password, role, branch } = pendingUserData;
+        
+        // Verificar que Firebase esté disponible
+        if (!firebase || !firebase.initializeApp) {
+            throw new Error('Firebase no está disponible');
+        }
+        
+        // MÉTODO 2: Crear en una instancia secundaria de Firebase (workaround)
+        // Crear una segunda instancia de Firebase Auth para no afectar la sesión actual
+        let secondaryApp;
+        let secondaryAuth;
+        
+        try {
+            secondaryApp = firebase.initializeApp(firebase.app().options, 'Secondary');
+            secondaryAuth = secondaryApp.auth();
+        } catch (initError) {
+            console.error('Error creating secondary app:', initError);
+            throw new Error('No se pudo inicializar la aplicación secundaria de Firebase');
+        }
+        
+        try {
+            // Crear usuario en la instancia secundaria
+            const userCredential = await secondaryAuth.createUserWithEmailAndPassword(email, password);
+            const newUser = userCredential.user;
+            
+            // Crear documento en Firestore usando la instancia principal
+            await db.collection('usuarios').doc(newUser.uid).set({
+                UID: newUser.uid,
+                email: email,
+                rol: role,
+                sucursal: branch
+            });
+            
+            // Cerrar sesión en la instancia secundaria y eliminarla
+            await secondaryAuth.signOut();
+            await secondaryApp.delete();
+            
+            // Limpiar formulario y datos pendientes SOLO después del éxito
+            document.getElementById('createUserForm').reset();
+            pendingUserData = null;
+            adminCredentials = null;
+            
+            showToast('Usuario creado exitosamente', 'success');
+            closeSideMenu();
+            
+        } catch (userCreationError) {
+            console.error('Error in user creation process:', userCreationError);
+            
+            // Limpiar aplicación secundaria si existe
+            try {
+                if (secondaryApp) {
+                    await secondaryApp.delete();
+                }
+            } catch (cleanupError) {
+                console.error('Error cleaning up secondary app:', cleanupError);
+            }
+            
+            throw userCreationError; // Re-throw para que sea manejado por el catch externo
+        }
+        
+    } catch (error) {
+        console.error('Error al crear usuario:', error);
+        
+        let message = 'Error al crear el usuario';
+        if (error.code === 'auth/email-already-in-use') {
+            message = 'Este email ya está registrado';
+        } else if (error.code === 'auth/invalid-email') {
+            message = 'El formato del email es inválido';
+        } else if (error.code === 'auth/weak-password') {
+            message = 'La contraseña es muy débil';
+        } else if (error.code === 'auth/operation-not-allowed') {
+            message = 'La creación de usuarios no está habilitada';
+        } else if (error.message) {
+            message = error.message;
+        }
+        
+        showToast(message, 'error');
+        
+        // Limpiar datos pendientes solo en caso de error
+        pendingUserData = null;
+        adminCredentials = null;
+    }
+}
+
+// Manejar cerrar sesión
+async function handleLogout() {
+    const result = await Swal.fire({
+        title: '¿Cerrar sesión?',
+        text: '¿Está seguro de que desea cerrar sesión?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, cerrar sesión',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            await auth.signOut();
+            window.location.href = 'login.html';
+        } catch (error) {
+            console.error('Error al cerrar sesión:', error);
+            showToast('Error al cerrar sesión', 'error');
+        }
+    }
 }
 
 async function registerEntry() {
