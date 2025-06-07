@@ -1,4 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // =============================================
+    // FUNCIONALIDAD DE TOGGLE DE CONTRASEÑA
+    // =============================================
+    
     // Para la estructura actual del HTML - Seleccionamos el botón directamente
     const toggleButton = document.querySelector('.toggle-password');
     const passwordInput = document.getElementById('password');
@@ -108,9 +112,144 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, true);
     
+    // =============================================
+    // FUNCIONALIDAD DE RECUPERACIÓN DE CONTRASEÑA
+    // =============================================
+    
+    // Referencias a elementos del DOM
+    const loginForm = document.getElementById('loginForm');
+    const resetPasswordForm = document.getElementById('resetPasswordForm');
+    const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+    const backToLoginLink = document.getElementById('backToLoginLink');
+    const resetEmailInput = document.getElementById('resetEmail');
+    
+    // Función para mostrar el formulario de recuperación
+    function showResetForm() {
+        loginForm.style.display = 'none';
+        resetPasswordForm.style.display = 'block';
+        resetEmailInput.focus();
+    }
+    
+    // Función para mostrar el formulario de login
+    function showLoginForm() {
+        resetPasswordForm.style.display = 'none';
+        loginForm.style.display = 'block';
+        document.getElementById('email').focus();
+    }
+    
+    // Event listeners para cambiar entre formularios
+    forgotPasswordLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        showResetForm();
+    });
+    
+    backToLoginLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        showLoginForm();
+    });
+    
+    // Función simplificada para enviar correo de recuperación
+    async function sendPasswordResetEmail(email) {
+        try {
+            // Enviar directamente el enlace de recuperación sin verificar primero
+            await firebase.auth().sendPasswordResetEmail(email, {
+                url: window.location.origin + '/login.html',
+                handleCodeInApp: false
+            });
+            
+            return { success: true };
+        } catch (error) {
+            console.error('Error al enviar correo de recuperación:', error);
+            return { success: false, error: error };
+        }
+    }
+    
+    // Manejador del formulario de recuperación
+    resetPasswordForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const resetBtn = document.querySelector('.reset-btn');
+        const originalBtnText = resetBtn.innerHTML;
+        const email = resetEmailInput.value.trim();
+        
+        // Validación básica del email
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Correo inválido',
+                text: 'Por favor, ingresa un correo electrónico válido.'
+            });
+            return;
+        }
+        
+        // Mostrar estado de carga
+        resetBtn.disabled = true;
+        resetBtn.innerHTML = '<span class="loader"></span> Enviando...';
+        
+        try {
+            const result = await sendPasswordResetEmail(email);
+            
+            if (result.success) {
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Correo enviado',
+                    html: `Se ha enviado un enlace de recuperación a:<br><strong>${email}</strong><br><br>Revisa tu bandeja de entrada y carpeta de spam.<br><br><small>Si el correo no existe en nuestro sistema, no recibirás ningún mensaje.</small>`,
+                    confirmButtonText: 'Entendido'
+                });
+                
+                resetPasswordForm.reset();
+                showLoginForm();
+            } else {
+                let errorMessage = 'Ocurrió un error al enviar el correo de recuperación.';
+                
+                switch (result.error.code) {
+                    case 'auth/user-not-found':
+                        // Firebase enviará el email exitosamente pero no llegará
+                        // Mostrar mensaje de éxito por seguridad
+                        await Swal.fire({
+                            icon: 'info',
+                            title: 'Correo procesado',
+                            html: `Se ha procesado la solicitud para:<br><strong>${email}</strong><br><br>Si existe una cuenta con este correo, recibirás un enlace de recuperación.<br><br>Revisa tu bandeja de entrada y carpeta de spam.`,
+                            confirmButtonText: 'Entendido'
+                        });
+                        resetPasswordForm.reset();
+                        showLoginForm();
+                        return;
+                    case 'auth/invalid-email':
+                        errorMessage = 'El correo electrónico no es válido.';
+                        break;
+                    case 'auth/too-many-requests':
+                        errorMessage = 'Demasiados intentos. Espera un momento antes de intentar nuevamente.';
+                        break;
+                    case 'auth/network-request-failed':
+                        errorMessage = 'Error de conexión. Verifica tu conexión a internet.';
+                        break;
+                    default:
+                        errorMessage = `Error: ${result.error.message || result.error.code}`;
+                }
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: errorMessage
+                });
+            }
+        } catch (error) {
+            console.error('Error inesperado:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Ocurrió un error inesperado. Inténtalo nuevamente.'
+            });
+        } finally {
+            resetBtn.disabled = false;
+            resetBtn.innerHTML = originalBtnText;
+        }
+    });
+    
     // Verificar integración con Firebase Auth
     if (typeof firebase !== 'undefined' && firebase.auth) {
-        console.log('Firebase Auth detectado - Toggle de contraseña funcionando en conjunto con Firebase');
+        console.log('Firebase Auth detectado - Funcionalidades de autenticación habilitadas');
     }
 });
 
@@ -175,6 +314,12 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
                     break;
                 case 'auth/too-many-requests':
                     errorMessage = 'Demasiados intentos. Cuenta temporalmente bloqueada';
+                    break;
+                case 'auth/invalid-email':
+                    errorMessage = 'Correo electrónico inválido';
+                    break;
+                case 'auth/user-disabled':
+                    errorMessage = 'Esta cuenta ha sido deshabilitada';
                     break;
             }
 

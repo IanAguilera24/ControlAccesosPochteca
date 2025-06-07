@@ -1188,7 +1188,7 @@ function addBranchFilter() {
     const branchFilterContainer = document.createElement('div');
     branchFilterContainer.className = 'branch-filter-container';
     branchFilterContainer.innerHTML = `
-        <label for="branchFilter">Filtrar por sucursal:</label>
+        <label for="branchFilter">Buscar sucursal:</label>
         <select id="branchFilter">
             <option value="">Todas las sucursales</option>
         </select>

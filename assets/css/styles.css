@@ -4,6 +4,7 @@
     --accent-color: #e74c3c;
     --light-gray: #ecf0f1;
     --dark-gray: #7f8c8d;
+    --background-alter: #eaeaea;
     --white: #ffffff;
     --border-color: #bdc3c7;
 }
@@ -26,7 +27,7 @@ body {
 .container {
     max-width: 1400px;
     margin: 0 auto;
-    background-color: var(--white);
+    background-color: var(--background-alter);
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
@@ -62,9 +63,11 @@ header {
     cursor: pointer;
     z-index: 1001;
     box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    transition: ease 0.3s;
 }
 
 .side-menu-toggle:hover {
+    transform: translateY(-2px);
     background: #93a444;
 }
 
@@ -200,7 +203,7 @@ header {
 
 .menu-btn:hover {
     background: #93a444;
-    transform: scale(1.03);
+    transform: translateY(-2px);
 }
 
 .logout-section {
@@ -223,7 +226,7 @@ header {
 
 .logout-btn:hover {
     background: #c82333;
-    transform: scale(1.03);
+    transform: translateY(-2px);
 }
 
 /* Ocultar tab de crear usuario para guardias */
@@ -283,7 +286,7 @@ header {
 
 #reauthSubmit:hover {
     background: #93a444;
-    transform: scale(1.03);
+    transform: translateY(-2px);
 }
 
 #reauthCancel {
@@ -293,7 +296,7 @@ header {
 }
 
 #reauthCancel:hover {
-    transform: scale(1.03);
+    transform: translateY(-2px);
 }
 
 /*---------------------------------------*/
@@ -419,7 +422,7 @@ h2 {
 
 .register-btn:hover {
     background-color: #93a444;
-    transform: scale(1.01);
+    transform: translateY(-2px);
 }
 
 .export-btn {
@@ -431,7 +434,7 @@ h2 {
 
 .export-btn:hover {
     background-color: #93a444;
-    transform: scale(1.01);
+    transform: translateY(-2px);
 }
 
 .table-container {
@@ -493,7 +496,7 @@ tr:hover {
 }
 
 .action-btn:hover {
-    transform: scale(1.05);
+    transform: translateY(-2px);
 }
 
 .check-out-btn:hover {
@@ -625,7 +628,7 @@ tr:hover {
 }
 
 .btn-confirm-custom:hover, .btn-cancel-custom:hover{
-    transform: scale(1.1);
+    transform: translateY(-2px);
 }
 
 /* Estilos para la paginación */

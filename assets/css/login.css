@@ -169,6 +169,126 @@ body {
     vertical-align: middle;
 }
 
+/* =============================================
+   ESTILOS PARA RECUPERACIÓN DE CONTRASEÑA
+   ============================================= */
+
+/* Enlace de "Olvidé mi contraseña" */
+.forgot-password-link {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.forgot-password-link a {
+    color: #005c43;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.forgot-password-link a:hover {
+    color: #004b35;
+    text-decoration: underline;
+}
+
+/* Formulario de recuperación de contraseña */
+.reset-form {
+    padding: 30px;
+    animation: fadeIn 0.3s ease;
+}
+
+.reset-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.reset-header h2 {
+    color: #005c43;
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.reset-header p {
+    color: #7f8c8d;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+/* Botón de recuperación */
+.btn.reset-btn {
+    width: 100%;
+    padding: 14px;
+    background-color: var(--secondary-color);
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+}
+
+.btn.reset-btn:hover {
+    background-color: #7a8a3a;
+    transform: translateY(-2px);
+}
+
+.btn.reset-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Enlace para volver al login */
+.back-to-login {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.back-to-login a {
+    color: #005c43;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.back-to-login a:hover {
+    color: #004b35;
+    text-decoration: underline;
+}
+
+/* Animación de aparición */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Loader para botones */
+.loader {
+    border: 2px solid transparent;
+    border-top: 2px solid #ffffff;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 /* Responsive */
 @media (max-width: 480px) {
     .login-card {
@@ -181,5 +301,21 @@ body {
     
     .login-container {
         padding: 10px;
+    }
+    .reset-form {
+        padding: 20px;
+    }
+    
+    .reset-header h2 {
+        font-size: 18px;
+    }
+    
+    .reset-header p {
+        font-size: 13px;
+    }
+    
+    .forgot-password-link a,
+    .back-to-login a {
+        font-size: 13px;
     }
 }
