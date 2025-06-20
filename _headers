@@ -14,7 +14,7 @@
     base-uri 'self';
     form-action 'self';
 
-/assets/*
+/assets/html/*
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
   Content-Security-Policy:
