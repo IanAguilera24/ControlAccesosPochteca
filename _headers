@@ -1,39 +1,40 @@
 /*
-  # Headers básicos de seguridad
+  # Headers básicos de seguridad (aplican a todo)
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
-  
-  # CSP mejorada (protege contra XSS y carga de recursos no autorizados)
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=()
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+
+  # CSP optimizada para Firebase
   Content-Security-Policy: 
     default-src 'self';
-    script-src 'self' https://www.gstatic.com https://apis.google.com https://cdn.firebase.com;
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    img-src 'self' data: https://*.googleapis.com https://*.gstatic.com;
-    font-src 'self' https://fonts.gstatic.com;
-    connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app;
+    script-src 'self' https://www.gstatic.com https://apis.google.com;
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' data:;
+    font-src 'self';
+    connect-src 'self' https://*.firebaseio.com;
     frame-src 'none';
     object-src 'none';
     base-uri 'self';
-    form-action 'self';
-  
-  # Headers adicionales recomendados
-  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=()
-  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
-  Cross-Origin-Opener-Policy: same-origin
-  Cross-Origin-Embedder-Policy: require-corp
+    form-action 'self'
 
-  # Control de caché para páginas dinámicas
+  # Política de caché estricta para contenido dinámico
   Cache-Control: no-store, no-cache, must-revalidate, private
   Pragma: no-cache
   Expires: 0
 
-# Configuración para assets estáticos
-/assets/*
+# Excepciones para assets estáticos
+/assets/images/*
   Cache-Control: public, max-age=31536000, immutable
 
-/fonts/*
+/assets/fonts/*
   Cache-Control: public, max-age=31536000, immutable
 
-/static/*
+/assets/js/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/css/*
   Cache-Control: public, max-age=31536000, immutable
