@@ -1,38 +1,49 @@
 /*
-  # Headers básicos de seguridad
+  # Cabeceras de Seguridad Completas
+  
+  # Anti-Clickjacking Protection
+  X-Frame-Options: DENY
+  
+  # MIME-Sniffing Protection
+  X-Content-Type-Options: nosniff
+  
+  # Referrer Policy
+  Referrer-Policy: strict-origin-when-cross-origin
+  
+  # Content Security Policy (CSP) - Configuración mejorada
+  Content-Security-Policy: default-src 'self' https://controdeaccesospochteca.netlify.app data:; script-src 'self' https: 'unsafe-eval' 'unsafe-inline'; style-src 'self' https: 'unsafe-inline'; img-src 'self' https: data: blob:; font-src 'self' https: data:; connect-src 'self' https: wss:; frame-src 'self' https:; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests; block-all-mixed-content
+  
+  # Cache Control para contenido sensible
+  Cache-Control: no-cache, no-store, must-revalidate, private
+  
+  # Prevenir almacenamiento en caché de proxies
+  Pragma: no-cache
+  
+  # Expiración inmediata
+  Expires: 0
+  
+  # Strict Transport Security (HTTPS)
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  
+  # Protección XSS adicional
+  X-XSS-Protection: 1; mode=block
+  
+  # Política de permisos (Feature Policy)
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), speaker=(), vibrate=(), fullscreen=(self), sync-xhr=(self)
+  
+  # Cross-Origin policies
+  Cross-Origin-Embedder-Policy: require-corp
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+*/
+
+/* 
+  CONFIGURACIÓN ALTERNATIVA PARA ACTIVOS ESTÁTICOS
+  (Usar para archivos CSS, JS, imágenes que pueden ser cacheados)
+  
+  Cache-Control: public, max-age=31536000, immutable
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=()
-  Cross-Origin-Opener-Policy: same-origin
-  Cross-Origin-Embedder-Policy: require-corp
-  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
-
-  # CSP MEJORADA (combina tu versión con optimizaciones)
-  Content-Security-Policy: 
-    default-src 'self' https://controdeaccesospochteca.netlify.app;
-    script-src 'self' https://www.gstatic.com https://apis.google.com https://cdn.firebase.com 'unsafe-eval';
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    img-src 'self' data: https://*.googleapis.com https://*.gstatic.com;
-    font-src 'self' https://fonts.gstatic.com data:;
-    connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app wss:;
-    frame-src 'self' https://*.firebaseapp.com;
-    object-src 'none';
-    base-uri 'self';
-    form-action 'self';
-    upgrade-insecure-requests
-
-  # Control de caché estricto para páginas sensibles
-  Cache-Control: no-store
-  Pragma: no-cache
-  Expires: 0
-
-# Configuración para assets estáticos
-/assets/*
-  Cache-Control: public, max-age=31536000, immutable
-
-/fonts/*
-  Cache-Control: public, max-age=31536000, immutable
-
-/static/*
-  Cache-Control: public, max-age=31536000, immutable
+  Content-Security-Policy: default-src 'self'; script-src 'self' https: 'unsafe-eval'; style-src 'self' https: 'unsafe-inline'; img-src 'self' https: data:; font-src 'self' https: data:; frame-ancestors 'self'; object-src 'none'
+*/
