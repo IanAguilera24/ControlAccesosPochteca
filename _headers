@@ -1,6 +1,7 @@
 /*
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
   Content-Security-Policy:
     default-src 'self';
     script-src 'self' 'unsafe-eval' https://www.gstatic.com https://apis.google.com https://www.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app;
@@ -12,3 +13,6 @@
     object-src 'none';
     base-uri 'self';
     form-action 'self';
+
+/assets/*
+  Access-Control-Allow-Origin: *
