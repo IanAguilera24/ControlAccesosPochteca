@@ -1,5 +1,5 @@
 /*
-  # Headers básicos de seguridad (aplican a todo)
+  # Headers básicos de seguridad
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
@@ -8,33 +8,31 @@
   Cross-Origin-Embedder-Policy: require-corp
   Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
 
-  # CSP optimizada para Firebase
+  # CSP MEJORADA (combina tu versión con optimizaciones)
   Content-Security-Policy: 
-    default-src 'self';
-    script-src 'self' https://www.gstatic.com https://apis.google.com;
-    style-src 'self' 'unsafe-inline';
-    img-src 'self' data:;
-    font-src 'self';
-    connect-src 'self' https://*.firebaseio.com;
-    frame-src 'none';
+    default-src 'self' https://controdeaccesospochteca.netlify.app;
+    script-src 'self' https://www.gstatic.com https://apis.google.com https://cdn.firebase.com 'unsafe-eval';
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    img-src 'self' data: https://*.googleapis.com https://*.gstatic.com;
+    font-src 'self' https://fonts.gstatic.com data:;
+    connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app wss:;
+    frame-src 'self' https://*.firebaseapp.com;
     object-src 'none';
     base-uri 'self';
-    form-action 'self'
+    form-action 'self';
+    upgrade-insecure-requests
 
-  # Política de caché estricta para contenido dinámico
-  Cache-Control: no-store, no-cache, must-revalidate, private
+  # Control de caché estricto para páginas sensibles
+  Cache-Control: no-store
   Pragma: no-cache
   Expires: 0
 
-# Excepciones para assets estáticos
-/assets/images/*
+# Configuración para assets estáticos
+/assets/*
   Cache-Control: public, max-age=31536000, immutable
 
-/assets/fonts/*
+/fonts/*
   Cache-Control: public, max-age=31536000, immutable
 
-/assets/js/*
-  Cache-Control: public, max-age=31536000, immutable
-
-/assets/css/*
+/static/*
   Cache-Control: public, max-age=31536000, immutable
