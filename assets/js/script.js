@@ -819,7 +819,7 @@ async function registerExit(recordId) {
         showCancelButton: true,
         confirmButtonText: 'Sí, registrar',
         cancelButtonText: 'Cancelar',
-        confirmButtonColor: '#3085d6',
+        confirmButtonColor: '#005c43',
         cancelButtonColor: '#d33',
         customClass: {
         confirmButton: 'btn-confirm-custom',
@@ -1137,8 +1137,6 @@ async function exportToExcel() {
         showToast(`Error al exportar: ${error.message}`, 'error');
     }
 }
-
-
 
 // Iniciar la aplicación
 function startApplication() {

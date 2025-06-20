@@ -627,6 +627,10 @@ tr:hover {
     transition: transform 0.3s ease;
 }
 
+.btn-confirm-custom:hover {
+    background-color: #93a444;
+}
+
 .btn-confirm-custom:hover, .btn-cancel-custom:hover{
     transform: translateY(-2px);
 }
