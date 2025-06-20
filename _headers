@@ -10,8 +10,8 @@
   # Referrer Policy
   Referrer-Policy: strict-origin-when-cross-origin
   
-  # Content Security Policy (CSP) - Configuración mejorada
-  Content-Security-Policy: default-src 'self' https://controdeaccesospochteca.netlify.app data:; script-src 'self' https: 'unsafe-eval' 'unsafe-inline'; style-src 'self' https: 'unsafe-inline'; img-src 'self' https: data: blob:; font-src 'self' https: data:; connect-src 'self' https: wss:; frame-src 'self' https:; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests; block-all-mixed-content
+  # Content Security Policy (CSP) - Configuración mejorada para Firebase
+  Content-Security-Policy: default-src 'self' https://controdeaccesospochteca.netlify.app data:; script-src 'self' https: 'unsafe-eval' 'unsafe-inline'; style-src 'self' https: 'unsafe-inline'; img-src 'self' https: data: blob:; font-src 'self' https: data:; connect-src 'self' https: wss: https://*.googleapis.com https://*.firebaseapp.com; frame-src 'self' https: https://*.firebaseapp.com https://*.googleapis.com; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests; block-all-mixed-content
   
   # Cache Control para contenido sensible
   Cache-Control: no-cache, no-store, must-revalidate, private
@@ -28,8 +28,8 @@
   # Protección XSS adicional
   X-XSS-Protection: 1; mode=block
   
-  # Política de permisos (Feature Policy)
-  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), speaker=(), vibrate=(), fullscreen=(self), sync-xhr=(self)
+  # Política de permisos (Feature Policy) - Corregida
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), fullscreen=(self), sync-xhr=(self)
   
   # Cross-Origin policies
   Cross-Origin-Embedder-Policy: require-corp
@@ -45,5 +45,5 @@
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
-  Content-Security-Policy: default-src 'self'; script-src 'self' https: 'unsafe-eval'; style-src 'self' https: 'unsafe-inline'; img-src 'self' https: data:; font-src 'self' https: data:; frame-ancestors 'self'; object-src 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' https: 'unsafe-eval'; style-src 'self' https: 'unsafe-inline'; img-src 'self' https: data:; font-src 'self' https: data:; connect-src 'self' https: https://*.googleapis.com; frame-src 'self' https://*.firebaseapp.com https://*.googleapis.com; frame-ancestors 'self'; object-src 'none'
 */
