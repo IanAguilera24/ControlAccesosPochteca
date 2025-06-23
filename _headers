@@ -41,7 +41,7 @@
   CONFIGURACIÓN PARA ACTIVOS ESTÁTICOS (CSS, JS, imágenes)
   Usar esta configuración para archivos que PUEDEN ser cacheados:
   
-  Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: no-cache, no-store, must-revalidate, private
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
