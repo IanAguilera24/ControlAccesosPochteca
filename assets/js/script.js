@@ -924,6 +924,9 @@ function createPaginationControls(totalPages, currentPage, type) {
     const controlsContainer = document.getElementById(`${type}PaginationControls`);
     controlsContainer.innerHTML = '';
     
+    // Si no hay páginas, no mostrar controles
+    if (totalPages === 0) return;
+    
     // Botón Anterior
     const prevBtn = document.createElement('button');
     prevBtn.textContent = '«';
@@ -963,42 +966,68 @@ function createPaginationControls(totalPages, currentPage, type) {
 function displayPendingRecords() {
     pendingBody.innerHTML = '';
     
+    const totalPages = Math.ceil(allPendingRecords.length / recordsPerPage);
+    
+    // Validar página actual
+    if (currentPendingPage > totalPages && totalPages > 0) {
+        currentPendingPage = totalPages;
+    } else if (currentPendingPage < 1) {
+        currentPendingPage = 1;
+    }
+    
     const startIndex = (currentPendingPage - 1) * recordsPerPage;
     const endIndex = Math.min(startIndex + recordsPerPage, allPendingRecords.length);
     const recordsToShow = allPendingRecords.slice(startIndex, endIndex);
     
-    if (recordsToShow.length === 0) {
+    if (allPendingRecords.length === 0) {
         pendingBody.innerHTML = `<tr><td colspan="6" style="text-align: center;">No hay registros pendientes</td></tr>`;
+        currentPendingPage = 0; // Sin páginas
     } else {
         recordsToShow.forEach(record => {
             addPendingRecord(record);
         });
     }
     
-    const totalPages = Math.ceil(allPendingRecords.length / recordsPerPage);
     createPaginationControls(totalPages, currentPendingPage, 'pending');
 }
 
 function displayCompletedRecords() {
     completedBody.innerHTML = '';
     
+    const totalPages = Math.ceil(allCompletedRecords.length / recordsPerPage);
+    
+    // Validar página actual
+    if (currentCompletedPage > totalPages && totalPages > 0) {
+        currentCompletedPage = totalPages;
+    } else if (currentCompletedPage < 1) {
+        currentCompletedPage = 1;
+    }
+    
     const startIndex = (currentCompletedPage - 1) * recordsPerPage;
     const endIndex = Math.min(startIndex + recordsPerPage, allCompletedRecords.length);
     const recordsToShow = allCompletedRecords.slice(startIndex, endIndex);
     
-    if (recordsToShow.length === 0) {
+    if (allCompletedRecords.length === 0) {
         completedBody.innerHTML = `<tr><td colspan="6" style="text-align: center;">No hay registros completados</td></tr>`;
+        currentCompletedPage = 0; // Sin páginas
     } else {
         recordsToShow.forEach(record => {
             addCompletedRecord(record);
         });
     }
     
-    const totalPages = Math.ceil(allCompletedRecords.length / recordsPerPage);
     createPaginationControls(totalPages, currentCompletedPage, 'completed');
 }
 
 function changePage(page, type) {
+    const records = type === 'pending' ? allPendingRecords : allCompletedRecords;
+    const totalPages = Math.ceil(records.length / recordsPerPage);
+    
+    // Validar que la página esté en el rango válido
+    if (page < 1 || page > totalPages || totalPages === 0) {
+        return; // No hacer nada si la página no es válida
+    }
+    
     if (type === 'pending') {
         currentPendingPage = page;
         displayPendingRecords();
